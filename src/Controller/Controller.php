@@ -132,10 +132,90 @@ class Controller extends AbstractController
     }
 
     /**
-     *
+     * @Route("/region/{id}")
      */
-    protected function region(DRegion $region)
+    public function region($id)
     {
+        $doctrine = $this->getDoctrine();
+
+        $region = $doctrine->getRepository(DEspacio::class)->findRegionById($id);
+
+        $decadas = $doctrine->getRepository(DTiempo::class)->findAllDecadas();
+
+        $provincias = $doctrine->getRepository(DEspacio::class)->findAllProvinciasByRegion($region);
+
+        $cultivos = $doctrine->getRepository(DCultivo::class)->findAll();
+
+        $datos = [];
+
+        foreach ($decadas as $decada) {
+            $decada = $decada['decada'];
+            $datos[$decada] = [];
+
+            foreach ($provincias as $provincia) {
+                $provincia = $provincia['nombre'];
+                $datos[$decada][$provincia] = [];
+
+                foreach ($cultivos as $cultivo) {
+                    $cultivo = $cultivo['nombre'];
+                    $datos[$decada][$provincia][$cultivo] = [
+                        'haSembradas'  => 0,
+                        'haCosechadas' => 0,
+                    ];
+                }
+            }
+        }
+
+        $medidas = $this->getDoctrine()->getRepository(HCosecha::class)->region($region);
+
+        foreach ($medidas as $medida) {
+            $datos[$medida['decada']][$medida['provincia']][$medida['cultivo']]['haSembradas']  = (int) $medida['haSembradas'];
+            $datos[$medida['decada']][$medida['provincia']][$medida['cultivo']]['haCosechadas'] = (int) $medida['haCosechadas'];
+        }
+
+        $x = [];
+
+        $haSembradas  = [];
+        $haCosechadas = [];
+
+        foreach ($datos as $decada => $dato) {
+            foreach ($dato as $provincia => $datoCultivo) {
+                $decadaProvincia = sprintf('%s %d', $provincia, $decada);
+
+                if (!in_array($decadaProvincia, $x)) {
+                    $x []= $decadaProvincia;
+                }
+
+                foreach ($datoCultivo as $cultivo => $data) {
+                    if (!isset($haSembradas[$cultivo])) {
+                        $haSembradas[$cultivo] = [
+                            'name' => $cultivo,
+                            'data' => [],
+                        ];
+                    }
+
+                    $haSembradas[$cultivo]['data'] []= $data['haSembradas'];
+
+                    if (!isset($haCosechadas[$cultivo])) {
+                        $haCosechadas[$cultivo] = [
+                            'name' => $cultivo,
+                            'data' => [],
+                        ];
+                    }
+
+                    $haCosechadas[$cultivo]['data'] []= $data['haCosechadas'];
+                }
+            }
+        }
+
+        $haSembradas  = array_values($haSembradas);
+        $haCosechadas = array_values($haCosechadas);
+
+        return new JsonResponse([
+            'x'            => $x,
+            'haSembradas'  => $haSembradas,
+            'haCosechadas' => $haCosechadas,
+        ]);
     }
 
     /**

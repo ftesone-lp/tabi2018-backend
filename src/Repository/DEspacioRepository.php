@@ -44,4 +44,38 @@ class DEspacioRepository extends ServiceEntityRepository
             ->execute()
         ;
     }
+
+    /**
+     *
+     */
+    public function findRegionById($id)
+    {
+        return $this->getEntityManager()
+            ->createQuery(
+                "SELECT e.region
+                FROM App\Entity\DEspacio e
+                WHERE e.id=:id"
+            )
+            ->setParameter('id', $id)
+            ->getSingleScalarResult()
+        ;
+    }
+
+    /**
+     *
+     */
+    public function findAllProvinciasByRegion($region)
+    {
+        return $this->getEntityManager()
+            ->createQuery(
+                "SELECT e.provincia AS nombre, MIN(e.id) AS id
+                FROM App\Entity\DEspacio e
+                WHERE e.region=:region
+                GROUP BY e.provincia
+                ORDER BY e.provincia"
+            )
+            ->setParameter('region', $region)
+            ->execute()
+        ;
+    }
 }
