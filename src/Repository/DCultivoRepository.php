@@ -18,14 +18,26 @@ class DCultivoRepository extends ServiceEntityRepository
      */
     public function findAll(): array
     {
-        return $this->getEntityManager()
-            ->createQuery(
-                "SELECT c.id, c.cultivo AS nombre
-                FROM App\Entity\DCultivo c
-                WHERE CURRENT_DATE() BETWEEN c.dateFrom AND c.dateTo
-                ORDER BY c.cultivo"
-            )
-            ->execute()
+        return $this->createQueryBuilder('c')
+            ->select('c.id, c.cultivo AS nombre')
+            ->where('CURRENT_DATE() BETWEEN c.dateFrom AND c.dateTo')
+            ->addOrderBy('c.cultivo', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     *
+     */
+    public function find($id, $lockMode = null, $lockVersion = null)
+    {
+        return $this->createQueryBuilder('c')
+            ->select('c.id, c.cultivo AS nombre')
+            ->where('c.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getSingleResult()
         ;
     }
 }

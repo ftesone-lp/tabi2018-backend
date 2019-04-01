@@ -16,16 +16,29 @@ class DTiempoRepository extends ServiceEntityRepository
     /**
      *
      */
-    public function findAllDecadas(): array
+    public function findAllDecadas():array
     {
-        return $this->getEntityManager()
-            ->createQuery(
-                "SELECT t.decada
-                FROM App\Entity\DTiempo t
-                GROUP BY t.decada
-                ORDER BY t.decada"
-            )
-            ->execute()
+        return $this->createQueryBuilder('t')
+            ->select('t.decada')
+            ->addGroupBy('t.decada')
+            ->addOrderBy('t.decada', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     *
+     */
+    public function findAllAniosByDecada($decada):array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t.anio')
+            ->andWhere('t.decada = :decada')
+            ->setParameter('decada', $decada)
+            ->addOrderBy('t.anio', 'ASC')
+            ->getQuery()
+            ->getResult()
         ;
     }
 }

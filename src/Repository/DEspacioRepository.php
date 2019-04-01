@@ -18,14 +18,12 @@ class DEspacioRepository extends ServiceEntityRepository
      */
     public function findAllRegiones(): array
     {
-        return $this->getEntityManager()
-            ->createQuery(
-                "SELECT e.region AS nombre, MIN(e.id) AS id
-                FROM App\Entity\DEspacio e
-                GROUP BY e.region
-                ORDER BY e.region"
-            )
-            ->execute()
+        return $this->createQueryBuilder('e')
+            ->select('e.region AS nombre, MIN(e.id) AS id')
+            ->addGroupBy('e.region')
+            ->addOrderBy('e.region', 'ASC')
+            ->getQuery()
+            ->getResult()
         ;
     }
 
@@ -34,14 +32,12 @@ class DEspacioRepository extends ServiceEntityRepository
      */
     public function findAllProvincias(): array
     {
-        return $this->getEntityManager()
-            ->createQuery(
-                "SELECT e.provincia AS nombre, MIN(e.id) AS id
-                FROM App\Entity\DEspacio e
-                GROUP BY e.provincia
-                ORDER BY e.provincia"
-            )
-            ->execute()
+        return $this->createQueryBuilder('e')
+            ->select('e.provincia AS nombre, MIN(e.id) AS id')
+            ->addGroupBy('e.provincia')
+            ->addOrderBy('e.provincia', 'ASC')
+            ->getQuery()
+            ->getResult()
         ;
     }
 
@@ -50,13 +46,11 @@ class DEspacioRepository extends ServiceEntityRepository
      */
     public function findRegionById($id)
     {
-        return $this->getEntityManager()
-            ->createQuery(
-                "SELECT e.region
-                FROM App\Entity\DEspacio e
-                WHERE e.id=:id"
-            )
+        return $this->createQueryBuilder('e')
+            ->select('e.region')
+            ->where('e.id = :id')
             ->setParameter('id', $id)
+            ->getQuery()
             ->getSingleScalarResult()
         ;
     }
@@ -66,16 +60,42 @@ class DEspacioRepository extends ServiceEntityRepository
      */
     public function findAllProvinciasByRegion($region)
     {
-        return $this->getEntityManager()
-            ->createQuery(
-                "SELECT e.provincia AS nombre, MIN(e.id) AS id
-                FROM App\Entity\DEspacio e
-                WHERE e.region=:region
-                GROUP BY e.provincia
-                ORDER BY e.provincia"
-            )
+        return $this->createQueryBuilder('e')
+            ->select('e.provincia AS nombre, MIN(e.id) AS id')
+            ->where('e.region = :region')
             ->setParameter('region', $region)
-            ->execute()
+            ->addGroupBy('e.provincia')
+            ->addOrderBy('e.provincia', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    /**
+     *
+     */
+    public function findProvinciaById($id)
+    {
+        return $this->createQueryBuilder('e')
+            ->select('e.provincia')
+            ->where('e.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getSingleScalarResult()
+        ;
+    }
+
+    /**
+     *
+     */
+    public function findAllDepartamentosByProvincia($provincia)
+    {
+        return $this->createQueryBuilder('e')
+            ->select('e.departamento AS nombre, e.id')
+            ->where('e.provincia = :provincia')
+            ->setParameter('provincia', $provincia)
+            ->getQuery()
+            ->getResult()
         ;
     }
 }
